@@ -1,0 +1,3 @@
+pdf2zh-next==2.9.0
+babeldoc==0.6.2
+PyMuPDF==1.25.2
