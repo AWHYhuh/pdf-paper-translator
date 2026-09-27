@@ -12,6 +12,14 @@ $stagingApp = Join-Path $stagingRoot "pdf-paper-translator"
 try {
     New-Item -ItemType Directory -Path $stagingApp -Force | Out-Null
     $packageFiles = @(
+        "runtime.sh",
+        "install.sh",
+        "doctor.sh",
+        "paperflow.sh",
+        "pdftranslate.sh",
+        "pdftranslate.py",
+        "test_portable.py",
+        "CHANGELOG.md",
         "pdftranslate.ps1",
         "pdftranslate.cmd",
         "paperflow.py",

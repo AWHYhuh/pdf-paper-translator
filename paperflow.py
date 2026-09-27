@@ -536,19 +536,17 @@ def run_translation(
     dual = paper_dir / "paper_zh-CN.dual.pdf"
     if mono.exists() and dual.exists() and not force:
         return "skipped_existing"
-    command = [
-        "powershell.exe",
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        str(Path(__file__).parent / "pdftranslate.ps1"),
-        str(paper_dir / "paper.pdf"),
-        "-Model",
-        model,
-    ]
-    if skip_scanned_detection:
-        command.append("-SkipScannedDetection")
+    if os.name == "nt":
+        command = ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                   "-File", str(Path(__file__).parent / "pdftranslate.ps1"),
+                   str(paper_dir / "paper.pdf"), "-Model", model]
+        if skip_scanned_detection:
+            command.append("-SkipScannedDetection")
+    else:
+        command = [sys.executable, str(Path(__file__).parent / "pdftranslate.py"),
+                   str(paper_dir / "paper.pdf"), "--model", model]
+        if skip_scanned_detection:
+            command.append("--skip-scanned-detection")
     process = subprocess.Popen(command)
     try:
         return_code = process.wait()

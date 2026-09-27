@@ -1,6 +1,6 @@
 # PDF Paper Translator
 
-一个可复制到不同文件夹使用的 Windows 论文翻译应用包。
+一个可复制到不同文件夹使用的跨平台论文翻译应用包。
 
 它通过 PDFMathTranslate 2.x、BabelDOC 和 DeepSeek 生成：
 
@@ -192,3 +192,42 @@ powershell -ExecutionPolicy Bypass -File .\pack.ps1
 生成的 ZIP 位于 `dist/`。ZIP 不包含 `.venv/`、API Key、用户缓存或论文文件。
 
 第三方许可说明见 `NOTICE.md`。
+
+
+## macOS / Linux 原生入口
+
+不需要 PowerShell。macOS Apple Silicon 已完成本机安装和离线验证；Intel Mac/Linux 尚未实机验证。需要 `uv`，安装说明：https://docs.astral.sh/uv/getting-started/installation/ 。
+
+```bash
+./install.sh
+./doctor.sh
+./paperflow.sh add /path/to/paper.pdf --library-root /path/to/workspace/papers
+./paperflow.sh batch /path/to/workspace/inbox
+```
+
+在工作区根目录运行时使用 `./pdf-paper-translator/paperflow.sh`。安装器使用 Python 3.12 和锁定的三个直接依赖版本；间接依赖由 uv 解析。Windows 复制来的 `.venv` 会移至 `.venv-backup-*`，不删除旧环境。重复安装会补齐依赖。
+
+密钥只从当前进程环境变量 `DEEPSEEK_API_KEY` 读取。可在 Mac 的 zsh 中交互输入，避免密钥进入命令历史：
+
+```zsh
+read -s 'DEEPSEEK_API_KEY?DeepSeek API key: '
+export DEEPSEEK_API_KEY
+printf '\n'
+```
+
+单独翻译和不调用 API 的检查：
+
+```bash
+./pdftranslate.sh /path/to/paper.pdf --library-root /path/to/papers
+./pdftranslate.sh /path/to/paper.pdf --preflight
+./paperflow.sh self-check
+.venv/bin/python -m unittest discover -s . -p test_portable.py -v
+```
+
+选项采用 `--model`、`--pages`、`--qps`、`--workers`、`--output-directory`、`--skip-scanned-detection` 等形式；通过 `--help` 查看。`--preflight` 不创建档案、不调用 API，缺少密钥时仍能显示准备信息；`doctor.sh` 缺少密钥则返回非零状态。
+
+支持 `PDF_PAPER_TRANSLATOR_RUNTIME` 指向其他原生虚拟环境。完整归档继续生成原文、译文、笔记、机械质检和状态文件；选页译文写入 `trials/`。失败运行也追加 token 报告，已有译文不会被失败运行覆盖。
+
+模型核查（2026-09-16）：[DeepSeek 官方定价](https://api-docs.deepseek.com/quick_start/pricing/)说明 `deepseek-v4-flash` 仍可调用，但映射到 DeepSeek-V4.1-Flash；建议后续改用官方名称 `deepseek-flash`（可通过 `--model` 与 `--notes-model` 指定）。本次保留已有默认配置。Mac 翻译报告按峰谷价格提供估算范围；原有自动笔记和 Windows 入口的价格快照尚未升级，不应视为当前账单。
+
+首轮真实翻译可能下载 BabelDOC 的字体/版面模型资源；离线测试不代表这些下载与 DeepSeek 网络调用已经验证。Windows 使用原有 `.cmd` / `.ps1` 入口。
